@@ -53,8 +53,12 @@ fn vertex(in: VertexInput) -> VertexOutput {
 
 @fragment
 fn fragment(in: VertexOutput) -> @location(0) vec4<f32> {
-    var color = in.color * textureSample(sprite_texture, sprite_sampler, in.uv);
-
+    let tex_cords = in.uv;
+    let dimensions = vec2<f32>(textureDimensions(sprite_texture));
+    let pix = tex_cords * dimensions;
+    let pixel_art_filtering = floor(pix) + min(fract(pix) / fwidth(pix), vec2<f32>(1.0, 1.0)) - 0.5;
+    let fixed_tex_cords = pixel_art_filtering / dimensions;  
+    var color = in.color * textureSample(sprite_texture, sprite_sampler, fixed_tex_cords);
 #ifdef TONEMAP_IN_SHADER
     color = tonemapping::tone_mapping(color, view.color_grading);
 #endif
